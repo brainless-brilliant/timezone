@@ -1,0 +1,15 @@
+<div class="empty-state">
+  <h2 class="empty-state__heading">No timezones added</h2>
+  <p class="empty-state__subtext">Search and add cities to compare times</p>
+
+  <div class="quick-add">
+    @for (city of quickAddCities; track city.id) {
+      <button
+        class="quick-add-btn"
+        (click)="addQuickCity(city.id)"
+      >
+        {{ city.name }}
+      </button>
+    }
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<div class="search-container" appClickOutside (appClickOutside)="closeDropdown()">
+  <div class="search-input-wrapper">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search any city worldwide..."
+      [value]="searchQuery()"
+      (input)="onSearchChange($any($event.target).value)"
+      (keydown)="onKeydown($event)"
+      role="combobox"
+      [attr.aria-expanded]="isDropdownOpen()"
+      [attr.aria-controls]="getDropdownId()"
+      [attr.aria-activedescendant]="activeIndex() >= 0 ? getOptionId(activeIndex()) : null"
+      aria-autocomplete="list"
+    />
+    @if (isLoading()) {
+      <div class="search-loader">
+        <div class="spinner"></div>
+      </div>
+    }
+  </div>
+
+  @if (isDropdownOpen() && (suggestions().length > 0 || isLoading())) {
+    <ul
+      class="suggestions-dropdown"
+      [id]="getDropdownId()"
+      role="listbox"
+    >
+      @if (suggestions().length === 0 && isLoading()) {
+        <li class="suggestion-item loading-item">Searching...</li>
+      }
+      @for (suggestion of suggestions(); track suggestion.id + ':' + suggestion.name; let i = $index) {
+        <li
+          class="suggestion-item"
+          [class.active]="i === activeIndex()"
+          [class.already-selected]="isAlreadySelected(suggestion)"
+          [id]="getOptionId(i)"
+          role="option"
+          [attr.aria-selected]="i === activeIndex()"
+          (click)="selectTimezone(suggestion)"
+        >
+          <span class="suggestion-city">{{ suggestion.name }}</span>
+          <span class="suggestion-details">
+            {{ suggestion.country }}
+            @if (suggestion.region) {
+              , {{ suggestion.region }}
+            }
+            @if (isAlreadySelected(suggestion)) {
+              <span class="already-badge">already added</span>
+            }
+          </span>
+        </li>
+      }
+      @if (suggestions().length === 0 && !isLoading() && searchQuery().length >= 2) {
+        <li class="suggestion-item no-results">No cities found</li>
+      }
+    </ul>
+  }
+</div>

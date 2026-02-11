@@ -1,0 +1,30 @@
+<div class="timezone-row">
+  <div class="row-info">
+    <button class="remove-btn" (click)="onRemove()" aria-label="Remove timezone">x</button>
+    <div class="info-left">
+      @if (row.relativeOffset) {
+        <span class="relative-offset">{{ row.relativeOffset }}</span>
+      }
+      <span class="city-name">{{ row.entry.name }}</span>
+      <span class="tz-abbr">{{ row.timezoneAbbr }}</span>
+      <span class="country">{{ row.entry.country }}</span>
+    </div>
+    <div class="info-right">
+      <span class="current-time">{{ displayedTime }}</span>
+      <span class="current-date">{{ row.currentDate }}</span>
+    </div>
+  </div>
+
+  <div class="hour-blocks">
+    @for (block of row.hourBlocks; track $index) {
+      <div
+        class="hour-block"
+        [class.magnified]="activeColumn === $index"
+        [attr.data-tod]="block.timeOfDay"
+      >
+        <span class="hour-num">{{ block.displayHour.split(' ')[0] }}</span>
+        <span class="hour-period">{{ block.displayHour.split(' ')[1] | lowercase }}</span>
+      </div>
+    }
+  </div>
+</div>

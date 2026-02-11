@@ -1,0 +1,25 @@
+<div class="timezone-grid"
+  cdkDropList
+  (cdkDropListDropped)="onDrop($event)"
+  (mousemove)="onGridMouseMove($event)"
+  (mouseleave)="onGridMouseLeave()">
+
+  <div class="column-overlay"
+    [style.left]="'calc((' + activeColumn() + ' * 100% / 24) - (100% / 24 * 0.25))'"
+    [style.width]="'calc(100% / 24 * 1.5)'">
+  </div>
+
+  @for (row of timezoneService.timezoneRows(); track row.entry.id; let first = $first; let last = $last) {
+    <div cdkDrag>
+      <app-timezone-row
+        [row]="row"
+        [isFirstRow]="first"
+        [isLastRow]="last"
+        [hoveredColumn]="timezoneService.hoveredColumn()"
+        [activeColumn]="activeColumn()"
+        (remove)="onRemove($event)"
+      />
+      <div class="drag-placeholder" *cdkDragPlaceholder></div>
+    </div>
+  }
+</div>

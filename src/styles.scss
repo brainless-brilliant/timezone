@@ -1,0 +1,137 @@
+// Black & White Theme with Liquid Glass (Default: Dark - Terminal Style)
+:root {
+  // Time-of-day palette (subtle grayscale with glass translucency)
+  --color-night: rgba(45, 45, 48, 0.6);
+  --color-night-text: rgba(255, 255, 255, 0.85);
+  --color-early-morning: rgba(80, 80, 85, 0.5);
+  --color-morning: rgba(120, 120, 125, 0.4);
+  --color-business: rgba(160, 160, 165, 0.3);
+  --color-evening: rgba(100, 100, 105, 0.45);
+  --color-late-evening: rgba(60, 60, 65, 0.55);
+
+  // UI chrome (glass) - Terminal-inspired dark gray
+  --color-bg: #1e1e1e;
+  --color-surface: rgba(255, 255, 255, 0.06);
+  --color-text-primary: rgba(255, 255, 255, 0.95);
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-text-placeholder: rgba(255, 255, 255, 0.35);
+  --color-border: rgba(255, 255, 255, 0.1);
+
+  // Glass properties
+  --glass-blur: 16px;
+  --glass-saturate: 110%;
+  --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-radius: 16px;
+  --glass-radius-sm: 10px;
+
+  // Interactive
+  --color-accent: #ffffff;
+  --color-accent-hover: rgba(255, 255, 255, 0.8);
+  --color-danger: #ff6b6b;
+  --color-danger-hover: #ff8787;
+
+  // Column overlay
+  --color-column-border: rgba(255, 255, 255, 0.4);
+}
+
+// Light theme
+[data-theme="light"] {
+  // Time-of-day palette (darker grayscale for better contrast on white)
+  --color-night: rgba(80, 80, 80, 0.35);
+  --color-night-text: #000000;
+  --color-early-morning: rgba(120, 120, 120, 0.28);
+  --color-morning: rgba(160, 160, 160, 0.22);
+  --color-business: rgba(200, 200, 200, 0.18);
+  --color-evening: rgba(140, 140, 140, 0.25);
+  --color-late-evening: rgba(100, 100, 100, 0.32);
+
+  // UI chrome (glass on light)
+  --color-bg: #ffffff;
+  --color-surface: rgba(0, 0, 0, 0.03);
+  --color-text-primary: rgba(0, 0, 0, 0.9);
+  --color-text-secondary: rgba(0, 0, 0, 0.6);
+  --color-text-placeholder: rgba(0, 0, 0, 0.4);
+  --color-border: rgba(0, 0, 0, 0.08);
+
+  // Glass properties (light mode)
+  --glass-blur: 16px;
+  --glass-saturate: 110%;
+  --glass-border: 1px solid rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --glass-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  // Interactive (light mode)
+  --color-accent: #000000;
+  --color-accent-hover: rgba(0, 0, 0, 0.7);
+  --color-danger: #cc0000;
+  --color-danger-hover: #ff0000;
+
+  // Column overlay (light mode)
+  --color-column-border: rgba(0, 0, 0, 0.35);
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+// Custom scrollbar for glass theme
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+// Selection color
+::selection {
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(0, 0, 0, 0.15);
+}

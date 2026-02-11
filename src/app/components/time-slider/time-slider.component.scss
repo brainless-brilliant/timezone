@@ -1,0 +1,17 @@
+// Slider is now invisible - the current hour indicator is a dashed border
+// on each row's .hour-block.current-hour cell.
+// The slider component remains for drag interaction but has no visible line.
+.time-slider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 10;
+  pointer-events: auto;
+  cursor: ew-resize;
+  transform: translateX(-20px);
+}
+
+.slider-handle {
+  display: none;
+}

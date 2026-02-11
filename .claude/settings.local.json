@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.worldtimebuddy.com)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:angular.dev)",
+      "WebFetch(domain:www.rarst.net)",
+      "WebFetch(domain:www.linux-magazine.com)",
+      "Bash(node:*)",
+      "Bash(npm --version:*)",
+      "Bash(npx ng version)",
+      "Bash(npm view:*)",
+      "Bash(npx @angular/cli@19 new:*)",
+      "Bash(cat:*)",
+      "Bash(npm install:*)",
+      "Bash(npx ng build:*)",
+      "Bash(timeout 15 npx ng serve:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(git add:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(ls:*)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

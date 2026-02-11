@@ -1,0 +1,12 @@
+<div class="app-container">
+  <app-header />
+  <div class="app-content">
+    <app-timezone-search />
+    @if (timezoneService.timezoneRows().length > 0) {
+      <app-timezone-grid />
+    } @else {
+      <app-empty-state />
+    }
+  </div>
+  <app-footer />
+</div>
