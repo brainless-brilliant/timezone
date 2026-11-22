@@ -14,7 +14,7 @@
         @if (isFirstRow) {
           <span class="tag">Reference</span>
         } @else if (row.relativeOffset) {
-          <span class="relative-offset" title="Hours relative to the reference row">{{ row.relativeOffset }}h</span>
+          <span class="relative-offset" title="Hours relative to the reference row (top)">{{ row.relativeOffset }}h vs ref</span>
         }
         @if (isLocal) {
           <span class="tag tag--solid">You</span>

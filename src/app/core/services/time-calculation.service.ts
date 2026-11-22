@@ -150,7 +150,7 @@ export class TimeCalculationService {
     const zoneOffset = this.getOffsetHours(timezoneId, now);
     const localOffset = this.getOffsetHours(local, now);
     const diff = zoneOffset - localOffset;
-    const localLabel = local.replace(/_/g, ' ');
+    const localLabel = local.split('/').pop()!.replace(/_/g, ' ');
 
     let line1: string;
     if (timezoneId === local) {

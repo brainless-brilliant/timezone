@@ -81,7 +81,10 @@ export class TimezoneService {
 
   initialize(): void {
     const savedEntries = this.storage.loadEntries();
-    savedEntries.forEach(e => this.customEntries.set(canonicalZoneId(e.id), { ...e, id: canonicalZoneId(e.id) }));
+    // Entries saved under a legacy id (e.g. Asia/Calcutta) carry an outdated name; let them re-derive.
+    savedEntries
+      .filter(e => canonicalZoneId(e.id) === e.id)
+      .forEach(e => this.customEntries.set(e.id, e));
     this.hour12.set(this.storage.loadHour12() ?? this.prefersHour12());
 
     const fromUrl = this.sanitizeIds(this.urlState.getTimezonesFromUrl());
