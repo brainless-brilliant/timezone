@@ -1,9 +1,14 @@
-.header {
+// Sticky on the host: sticky inside a wrapper of its own height never sticks.
+:host {
+  display: block;
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 0.875rem 1.5rem 0;
   margin-bottom: 1.25rem;
+}
+
+.header {
+  padding: 0.875rem 1.5rem 0;
 
   &__bar {
     max-width: 1240px;
