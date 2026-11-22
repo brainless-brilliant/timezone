@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { TimezoneRow, TimezoneEntry } from '../models/timezone.model';
 import { TIMEZONE_DATABASE } from '../data/timezone-data';
-import { canonicalZoneId } from '../data/timezone-aliases';
+import { LEGACY_ZONE_ALIASES, canonicalZoneId } from '../data/timezone-aliases';
 import { TimeCalculationService } from './time-calculation.service';
 import { StorageService } from './storage.service';
 import { UrlStateService } from './url-state.service';
@@ -82,8 +82,9 @@ export class TimezoneService {
   initialize(): void {
     const savedEntries = this.storage.loadEntries();
     // Entries saved under a legacy id (e.g. Asia/Calcutta) carry an outdated name; let them re-derive.
+    const legacyNames = new Set(Object.keys(LEGACY_ZONE_ALIASES).map(k => k.split('/').pop()!.replace(/_/g, ' ')));
     savedEntries
-      .filter(e => canonicalZoneId(e.id) === e.id)
+      .filter(e => canonicalZoneId(e.id) === e.id && !legacyNames.has(e.name))
       .forEach(e => this.customEntries.set(e.id, e));
     this.hour12.set(this.storage.loadHour12() ?? this.prefersHour12());
 
