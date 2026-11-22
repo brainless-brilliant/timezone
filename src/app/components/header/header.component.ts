@@ -62,7 +62,7 @@ export class HeaderComponent implements OnInit {
   }
 
   protected async copyLink(): Promise<void> {
-    const url = this.urlStateService.generateShareableUrl(this.timezoneService.selectedTimezoneIds());
+    const url = this.urlStateService.generateShareableUrl(this.timezoneService.selectedKeys(), this.timezoneService.pinnedInstant());
     try {
       await navigator.clipboard.writeText(url);
       this.showCopiedFeedback.set(true);

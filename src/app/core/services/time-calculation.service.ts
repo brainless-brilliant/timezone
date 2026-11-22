@@ -199,23 +199,65 @@ export class TimeCalculationService {
     return parseInt(this.fmt(timezoneId, { hour: 'numeric', hourCycle: 'h23' }).format(date), 10) % 24;
   }
 
-  private getCurrentMinute(date: Date, timezoneId: string): number {
-    return parseInt(this.fmt(timezoneId, { minute: 'numeric' }).format(date), 10);
+  /** Wall-clock parts of an instant in a zone. */
+  localParts(date: Date, timezoneId: string): { year: number; month: number; day: number; hour: number; minute: number; weekday: number } {
+    const parts = this.fmt(timezoneId, {
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', hourCycle: 'h23', weekday: 'short',
+    }).formatToParts(date);
+    const get = (t: string) => parts.find(p => p.type === t)?.value ?? '0';
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return {
+      year: Number(get('year')),
+      month: Number(get('month')),
+      day: Number(get('day')),
+      hour: Number(get('hour')) % 24,
+      minute: Number(get('minute')),
+      weekday: weekdays.indexOf(get('weekday')),
+    };
   }
 
   /**
-   * The instant at which the reference zone shows hh:00 for each of the 24 columns
-   * of its current calendar day. Column i is "today at i o'clock" in the reference zone.
+   * The instant at which a zone's wall clock reads the given local date and time.
+   * Uses the zone's offset at a first guess, then corrects once for DST changes.
    */
-  columnInstants(now: Date, referenceTimezoneId: string): Date[] {
-    const refHour = this.getCurrentHour(now, referenceTimezoneId);
-    const refMinute = this.getCurrentMinute(now, referenceTimezoneId);
-    const hourStart = now.getTime() - refMinute * 60_000 - now.getSeconds() * 1000 - now.getMilliseconds();
+  zonedInstant(timezoneId: string, year: number, month: number, day: number, hour = 0, minute = 0): number {
+    const asUtc = Date.UTC(year, month - 1, day, hour, minute);
+    let guess = asUtc - this.getOffsetHours(timezoneId, new Date(asUtc)) * HOUR_MS;
+    const corrected = asUtc - this.getOffsetHours(timezoneId, new Date(guess)) * HOUR_MS;
+    if (corrected !== guess) guess = corrected;
+    return guess;
+  }
+
+  /** Whole calendar days from the visitor's today to the instant's date in the visitor's zone. */
+  dayDelta(instant: Date, fromZone: string, toZone: string): number {
+    const a = this.localParts(instant, fromZone);
+    const b = this.localParts(instant, toZone);
+    return Math.round((Date.UTC(b.year, b.month - 1, b.day) - Date.UTC(a.year, a.month - 1, a.day)) / 86_400_000);
+  }
+
+  /**
+   * One instant per hour of the reference zone's calendar day `dayOffset` days from today.
+   * Column i is "i o'clock" on that day in the reference zone (DST days are still 24 columns).
+   */
+  columnInstants(now: Date, referenceTimezoneId: string, dayOffset = 0): Date[] {
+    const today = this.localParts(now, referenceTimezoneId);
+    const target = new Date(Date.UTC(today.year, today.month - 1, today.day + dayOffset));
+    const midnight = this.zonedInstant(
+      referenceTimezoneId, target.getUTCFullYear(), target.getUTCMonth() + 1, target.getUTCDate(),
+    );
     const instants: Date[] = [];
-    for (let col = 0; col < 24; col++) {
-      instants.push(new Date(hourStart + (col - refHour) * HOUR_MS));
-    }
+    for (let col = 0; col < 24; col++) instants.push(new Date(midnight + col * HOUR_MS));
     return instants;
+  }
+
+  /** Likely availability of someone in `zone` at a local hour, given working hours and weekends. */
+  availability(hour: number, weekday: number, weekendDays: number[], work: { start: number; end: number }): 'work' | 'edge' | 'off' | 'sleep' | 'weekend' {
+    if (hour < 7 || hour >= 23) return 'sleep';
+    if (weekendDays.includes(weekday)) return 'weekend';
+    if (hour >= work.start && hour < work.end) return 'work';
+    if (hour === work.start - 1 || hour === work.end) return 'edge';
+    return 'off';
   }
 
   generateHourBlocks(
@@ -223,19 +265,19 @@ export class TimeCalculationService {
     timezoneId: string,
     referenceTimezoneId: string,
     hour12 = true,
+    dayOffset = 0,
+    work: { start: number; end: number } = { start: 9, end: 17 },
+    weekendDays: number[] = [0, 6],
   ): HourBlock[] {
-    const instants = this.columnInstants(now, referenceTimezoneId);
-    const refCurrentHour = this.getCurrentHour(now, referenceTimezoneId);
+    const instants = this.columnInstants(now, referenceTimezoneId, dayOffset);
+    const nowMs = now.getTime();
     const blocks: HourBlock[] = [];
     let prevWholeHour = -1;
 
     instants.forEach((instant, col) => {
-      const offset = this.getOffsetHours(timezoneId, instant);
-      const refOffset = this.getOffsetHours(referenceTimezoneId, instant);
-      const local = ((col + offset - refOffset) % 24 + 24) % 24;
-      const wholeHour = Math.floor(local + 1e-9);
-      const minutes = Math.round((local - wholeHour) * 60);
-
+      const local = this.localParts(instant, timezoneId);
+      const wholeHour = local.hour;
+      const minutes = local.minute;
       const crossesMidnight = col > 0 && wholeHour < prevWholeHour;
       prevWholeHour = wholeHour;
 
@@ -251,6 +293,7 @@ export class TimeCalculationService {
         periodLabel = '';
       }
 
+      const t = instant.getTime();
       blocks.push({
         hour: wholeHour,
         minutes,
@@ -259,9 +302,10 @@ export class TimeCalculationService {
         periodLabel,
         dayLabel: wholeHour === 0 ? this.formatWeekday(instant, timezoneId) : '',
         timeOfDay: this.classifyHour(wholeHour),
-        isCurrentHour: col === refCurrentHour,
+        availability: this.availability(wholeHour, local.weekday, weekendDays, work),
+        isCurrentHour: nowMs >= t && nowMs < t + HOUR_MS,
         crossesMidnight,
-        instant: instant.getTime(),
+        instant: t,
       });
     });
 

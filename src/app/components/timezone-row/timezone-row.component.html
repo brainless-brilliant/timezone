@@ -6,13 +6,23 @@
 
     <div class="info-left">
       <div class="title-line">
-        <span class="city-name">{{ row.entry.name }}</span>
+        @if (editing()) {
+          <input #nameInput class="name-input" [value]="row.entry.name" maxlength="40"
+            aria-label="Row label" placeholder="Label, e.g. a person or office"
+            (keydown.enter)="commitRename(nameInput.value)" (keydown.escape)="editing.set(false)"
+            (blur)="commitRename(nameInput.value)" />
+        } @else {
+          <button class="city-name" (click)="startRename()" title="Rename (e.g. a person or office)">{{ row.entry.name }}</button>
+        }
+        @if (row.zoneCity) {
+          <span class="zone-city">{{ row.zoneCity }}</span>
+        }
         <span class="chip-abbr" [attr.title]="row.utcOffset + (row.isDst ? ', daylight saving time' : '')">{{ row.timezoneAbbr }}</span>
         @if (row.timezoneAbbr !== row.utcOffset) {
           <span class="utc">{{ row.utcOffset }}</span>
         }
         @if (isFirstRow) {
-          <span class="tag">Reference</span>
+          <span class="tag" title="The hour grid is aligned to this row">Reference</span>
         } @else if (row.relativeOffset) {
           <span class="relative-offset" title="Hours relative to the reference row (top)">{{ row.relativeOffset }}h vs ref</span>
         }
@@ -20,19 +30,25 @@
           <span class="tag tag--solid">You</span>
         }
       </div>
-      @if (explanation && (explanation.line1 || explanation.line2)) {
+      @if (renameError()) {
+        <p class="explain"><span>{{ renameError() }}</span></p>
+      } @else if (explanation && (explanation.line1 || explanation.line2)) {
         <p class="explain">
           <span>{{ explanation.line1 }}</span>
           <span class="explain__secondary">{{ explanation.line2 }}</span>
         </p>
-      } @else if (row.entry.country) {
-        <p class="explain"><span>{{ row.entry.country }}</span></p>
       }
     </div>
 
     <div class="info-right">
-      <span class="current-time" [class.inspecting]="inspectColumn !== null">{{ displayedTime }}</span>
-      <span class="current-date">{{ displayedDate }}</span>
+      <span class="current-time" [class.inspecting]="inspectInstant !== null">{{ displayedTime }}</span>
+      <span class="current-date">
+        @if (dayRelation) {
+          <span class="day-rel">{{ dayRelation }}</span>
+        }
+        {{ displayedDate }}
+      </span>
+      <span class="status" [attr.data-av]="status.availability">{{ status.label }}</span>
     </div>
 
     <div class="row-actions">
@@ -55,6 +71,7 @@
         [class.now]="block.isCurrentHour"
         [class.new-day]="block.dayLabel"
         [attr.data-tod]="block.timeOfDay"
+        [attr.data-av]="block.availability"
       >
         <span class="hour-num">{{ block.hourLabel }}</span>
         @if (block.dayLabel) {

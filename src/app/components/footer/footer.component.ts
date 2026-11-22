@@ -17,7 +17,7 @@ export class FooterComponent {
   protected showCopiedFeedback = signal(false);
 
   protected async copyLink(): Promise<void> {
-    const url = this.urlStateService.generateShareableUrl(this.timezoneService.selectedTimezoneIds());
+    const url = this.urlStateService.generateShareableUrl(this.timezoneService.selectedKeys(), this.timezoneService.pinnedInstant());
 
     try {
       await navigator.clipboard.writeText(url);

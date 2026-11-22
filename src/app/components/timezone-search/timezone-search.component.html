@@ -8,7 +8,7 @@
       #input
       type="text"
       class="search-input"
-      placeholder="City, zone, abbreviation or offset: Tokyo, IST, CET+1, UTC-5"
+      [attr.placeholder]="placeholder"
       [value]="searchQuery()"
       (input)="onSearchChange($any($event.target).value)"
       (keydown)="onKeydown($event)"
@@ -36,7 +36,10 @@
       }
       <ul class="suggestions-list" [id]="getDropdownId()" role="listbox">
         @for (s of suggestions(); track s.source + s.entry.id + ':' + s.entry.name; let i = $index) {
-          @if (i === 0 && s.source === 'zone') {
+          @if (s.source === 'time') {
+            <li class="group-label" role="presentation">Pin a time</li>
+          }
+          @if (s.source === 'zone' && (i === 0 || suggestions()[i - 1].source === 'time')) {
             <li class="group-label" role="presentation">Time zones</li>
           }
           @if (i === firstCityIndex()) {
@@ -54,7 +57,7 @@
             (mouseenter)="activeIndex.set(i)"
           >
             <span class="suggestion-main">
-              <span class="suggestion-city">{{ s.entry.name }}</span>
+              <span class="suggestion-city">{{ s.source === 'time' ? s.time!.label : s.entry.name }}</span>
               <span class="suggestion-details">{{ s.detail }}</span>
             </span>
             @if (isAlreadySelected(s)) {

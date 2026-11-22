@@ -14,21 +14,39 @@ export enum TimeOfDay {
   LateEvening = 'late-evening', // 21-23
 }
 
+/** What a person in this zone is most likely doing at a given time. */
+export type Availability = 'work' | 'edge' | 'off' | 'sleep' | 'weekend';
+
+export interface WorkHours {
+  start: number; // hour, 0-23
+  end: number;   // hour, 1-24 (exclusive)
+}
+
 export interface HourBlock {
-  hour: number;          // 0-23 whole hour in that timezone
-  minutes: number;       // 0 or 30 (for half-hour offset timezones)
+  hour: number;          // 0-23 local hour in that timezone
+  minutes: number;       // 0, 30 or 45 for fractional-offset zones
   displayHour: string;   // formatted e.g. '9 AM', '1:30 PM', '13:30'
   hourLabel: string;     // e.g. '9', '1:30', '13'
   periodLabel: string;   // 'am' | 'pm' | '' in 24-hour mode
   dayLabel: string;      // weekday shown at local midnight, e.g. 'Tue'
   timeOfDay: TimeOfDay;
+  availability: Availability;
   isCurrentHour: boolean;
-  crossesMidnight: boolean; // true if this column crosses midnight boundary
+  crossesMidnight: boolean;
   instant: number;       // epoch ms of this column (reference zone hh:00)
 }
 
+export interface RowStatus {
+  availability: Availability;
+  label: string;         // 'Working', 'Asleep', 'Weekend', ...
+}
+
 export interface TimezoneRow {
+  /** Unique row key: the zone id, or "zone~Label" for renamed or duplicate rows. */
+  key: string;
   entry: TimezoneEntry;
+  /** City behind a custom label, shown when it differs from the label. */
+  zoneCity: string;
   currentTime: string;    // e.g. '2:45 PM'
   currentDate: string;    // e.g. 'Mon, Feb 10'
   utcOffset: string;      // e.g. 'UTC-5'

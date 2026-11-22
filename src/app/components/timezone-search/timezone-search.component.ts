@@ -6,6 +6,7 @@ import { TimezoneService } from '../../core/services/timezone.service';
 import { GeocodingService } from '../../core/services/geocoding.service';
 import { TimezoneSearchIndexService } from '../../core/services/timezone-search-index.service';
 import { TimeCalculationService } from '../../core/services/time-calculation.service';
+import { TimeQuery, TimeQueryService } from '../../core/services/time-query.service';
 import { TimezoneEntry } from '../../core/models/timezone.model';
 import { ClickOutsideDirective } from '../../shared/directives/click-outside.directive';
 
@@ -13,7 +14,8 @@ export interface Suggestion {
   entry: TimezoneEntry;
   detail: string;
   badge: string;
-  source: 'zone' | 'city';
+  source: 'zone' | 'city' | 'time';
+  time?: TimeQuery;
 }
 
 @Component({
@@ -28,8 +30,13 @@ export class TimezoneSearchComponent implements OnInit, OnDestroy {
   private geocodingService = inject(GeocodingService);
   private searchIndex = inject(TimezoneSearchIndexService);
   private timeCalc = inject(TimeCalculationService);
+  private timeQuery = inject(TimeQueryService);
 
   @ViewChild('input', { static: true }) private inputRef!: ElementRef<HTMLInputElement>;
+
+  protected readonly placeholder = window.matchMedia('(max-width: 640px)').matches
+    ? 'City, IST, CET+1 or "3pm London"'
+    : 'Search a city, zone (IST, CET+1, UTC-5) or a time: "3pm London", "tomorrow 9am Tokyo"';
 
   protected searchQuery = signal('');
   protected isDropdownOpen = signal(false);
@@ -38,20 +45,22 @@ export class TimezoneSearchComponent implements OnInit, OnDestroy {
   protected zoneResults = signal<Suggestion[]>([]);
   protected cityResults = signal<Suggestion[]>([]);
   protected expression = signal<string | null>(null);
+  protected timeResult = signal<Suggestion | null>(null);
 
   /** Zones first (instant, local), then cities from the geocoding API without duplicates. */
   protected suggestions = computed<Suggestion[]>(() => {
     const zones = this.zoneResults();
+    const time = this.timeResult();
     const seen = new Set(zones.map(z => `${z.entry.id}:${z.entry.name.toLowerCase()}`));
     const cities = this.cityResults().filter(c => !seen.has(`${c.entry.id}:${c.entry.name.toLowerCase()}`));
-    return [...zones, ...cities];
+    return [...(time ? [time] : []), ...zones, ...cities];
   });
 
   /** Explanation of the highlighted (or first) suggestion, relative to the visitor's zone. */
   protected activeExplanation = computed(() => {
     const items = this.suggestions();
     const item = items[this.activeIndex()] ?? items[0];
-    if (!item) return null;
+    if (!item || item.source === 'time') return null;
     try {
       const now = new Date();
       const e = this.timeCalc.describeRelativeToLocal(item.entry.id, now);
@@ -103,11 +112,12 @@ export class TimezoneSearchComponent implements OnInit, OnDestroy {
     const trimmed = value.trim();
 
     this.expression.set(this.searchIndex.describeExpression(trimmed));
+    this.timeResult.set(this.parseTime(trimmed));
     this.zoneResults.set(trimmed ? this.searchIndex.search(trimmed, 8) : []);
     this.isDropdownOpen.set(trimmed.length >= 1);
 
     // City lookups only make sense for words, not "+5:30" or "CET+1".
-    if (trimmed.length >= 2 && !this.expression()) {
+    if (trimmed.length >= 2 && !this.expression() && !this.timeResult()) {
       this.searchSubject.next(trimmed);
     } else {
       this.cityResults.set([]);
@@ -148,14 +158,49 @@ export class TimezoneSearchComponent implements OnInit, OnDestroy {
   }
 
   protected isAlreadySelected(s: Suggestion): boolean {
-    return this.timezoneService.selectedTimezoneIds().includes(s.entry.id);
+    if (s.source === 'time') return false;
+    return this.timezoneService.hasKey(this.timezoneService.keyFor(s.entry.id, s.entry.name));
   }
 
   protected selectTimezone(s: Suggestion): void {
     if (this.isAlreadySelected(s)) return;
+    if (s.source === 'time' && s.time) {
+      // Naming a place that is not on screen adds it, so the pinned time is visible there.
+      const place = s.time.place;
+      if (place && !place.key) this.timezoneService.addTimezone(place.entry.id, place.entry);
+      this.timezoneService.pinInstant(s.time.instant);
+      this.reset();
+      return;
+    }
     this.timezoneService.addTimezone(s.entry.id, s.entry);
     this.reset();
     this.timezoneService.syncState();
+  }
+
+  /** "3pm london" style queries become a pinned-time suggestion showing everyone's time. */
+  private parseTime(text: string): Suggestion | null {
+    const rows = this.timezoneService.timezoneRows();
+    const hour12 = this.timezoneService.hour12();
+    const q = this.timeQuery.parse(text, {
+      now: new Date(),
+      localZone: this.timezoneService.localZone,
+      rows: rows.map(r => ({ key: r.key, entry: r.entry })),
+      hour12,
+    });
+    if (!q) return null;
+    const at = new Date(q.instant);
+    const others = rows
+      .filter(r => r.entry.id !== q.zoneId)
+      .slice(0, 3)
+      .map(r => `${this.timeCalc.formatTime(at, r.entry.id, hour12)} ${r.entry.name}`);
+    const adds = q.place && !q.place.key ? ` Adds ${q.place.entry.name}.` : '';
+    return {
+      entry: q.place?.entry ?? { id: q.zoneId, name: 'Your time', country: '', region: '' },
+      detail: (others.length ? '= ' + others.join(' · ') : 'Pins this moment on the grid.') + adds,
+      badge: 'Pin',
+      source: 'time',
+      time: q,
+    };
   }
 
   protected onFocus(): void {
@@ -184,6 +229,7 @@ export class TimezoneSearchComponent implements OnInit, OnDestroy {
     this.zoneResults.set([]);
     this.cityResults.set([]);
     this.expression.set(null);
+    this.timeResult.set(null);
     this.closeDropdown();
   }
 

@@ -1,17 +1,101 @@
+<!-- Day navigation and pinned-time actions -->
 <div class="grid-toolbar">
+  <div class="day-nav">
+    <button class="round" (click)="shiftDay(-1)" aria-label="Previous day" title="Previous day (Shift + Left)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 6-6 6 6 6"/></svg>
+    </button>
+    <button class="day-label" (click)="openDatePicker()" title="Pick a date">
+      <span class="day-label__rel">{{ timezoneService.viewDay().relative }}</span>
+      <span class="day-label__date">{{ timezoneService.viewDay().date }}</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+    </button>
+    <input #dateInput class="date-input" type="date" tabindex="-1" aria-label="Pick a date"
+      [value]="timezoneService.viewDateIso()" (change)="onDatePicked($any($event.target).value)" />
+    <button class="round" (click)="shiftDay(1)" aria-label="Next day" title="Next day (Shift + Right)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6 6 6-6 6"/></svg>
+    </button>
+    @if (!timezoneService.isToday() || timezoneService.pinnedInstant() !== null) {
+      <button class="chip chip--ghost" (click)="clearPin()" title="Back to now (T)">Now</button>
+    }
+  </div>
+
   @if (pinnedSummary(); as pin) {
-    <span class="grid-toolbar__status">
-      <span class="dot" aria-hidden="true"></span>
-      Pinned: <strong>{{ pin.time }}</strong> in {{ pin.city }}
-    </span>
-    <span class="grid-toolbar__actions">
-      <button class="chip" (click)="copyPinned()">{{ copied() ? 'Copied' : 'Copy times' }}</button>
-      <button class="chip chip--ghost" (click)="clearPin()">Back to now</button>
-    </span>
+    <div class="pin-actions">
+      <span class="pin-label"><span class="dot" aria-hidden="true"></span>{{ pin.time }} {{ pin.city }}</span>
+      <button class="chip chip--ghost" (click)="copyPinned()">{{ copied() ? 'Copied' : 'Copy times' }}</button>
+      <div class="menu-anchor" appClickOutside (appClickOutside)="calendarOpen.set(false)">
+        <button class="chip" (click)="calendarOpen.set(!calendarOpen())" [attr.aria-expanded]="calendarOpen()">Add to calendar</button>
+        @if (calendarOpen()) {
+          <div class="popover glass" role="menu">
+            <div class="popover__label">Duration</div>
+            <div class="seg-row">
+              @for (d of durations; track d) {
+                <button [attr.aria-pressed]="duration() === d" (click)="duration.set(d)">{{ d < 60 ? d + 'm' : (d / 60) + 'h' }}</button>
+              }
+            </div>
+            <button class="popover__item" role="menuitem" (click)="downloadIcs()">Download .ics (Apple, any app)</button>
+            <a class="popover__item" role="menuitem" [href]="calendarUrl('google')" target="_blank" rel="noopener" (click)="calendarOpen.set(false)">Google Calendar</a>
+            <a class="popover__item" role="menuitem" [href]="calendarUrl('outlook')" target="_blank" rel="noopener" (click)="calendarOpen.set(false)">Outlook</a>
+          </div>
+        }
+      </div>
+    </div>
   } @else {
-    <span class="grid-toolbar__hint">Hover to compare hours. Click an hour to pin it and copy the times. Drag rows to reorder.</span>
+    <span class="hint">Click an hour to pin it. Arrow keys move it.</span>
   }
 </div>
+
+<!-- Meeting finder -->
+@if (suggestionText(); as s) {
+  <div class="finder glass">
+    <span class="finder__icon" [class.ok]="s.everyoneWorking" aria-hidden="true">
+      @if (s.everyoneWorking) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+      }
+    </span>
+    <div class="finder__text">
+      @if (s.everyoneWorking) {
+        <strong>Best time: {{ s.range }} {{ s.city }}</strong>
+        <span>Everyone is within working hours{{ timezoneService.isToday() ? '' : ' on this day' }}.</span>
+      } @else {
+        <strong>No hour suits everyone. Least disruptive: {{ s.range }} {{ s.city }}</strong>
+        <span>
+          {{ s.workingCount }} of {{ s.total }} in working hours.
+          @for (o of s.outliers; track o.name; let last = $last) {
+            {{ o.name }} at {{ o.time }} ({{ o.status }}){{ last ? '.' : ';' }}
+          }
+        </span>
+      }
+    </div>
+    <button class="chip" (click)="pinSuggestion()">Pin it</button>
+    <div class="menu-anchor" appClickOutside (appClickOutside)="workOpen.set(false)">
+      <button class="chip chip--ghost work-btn" (click)="workOpen.set(!workOpen())" [attr.aria-expanded]="workOpen()" title="Working hours used for suggestions">
+        {{ workLabel() }}
+      </button>
+      @if (workOpen()) {
+        <div class="popover glass popover--work">
+          <div class="popover__label">Working hours, everyone's local time</div>
+          <div class="work-row">
+            <select aria-label="Start" (change)="setWork('start', $any($event.target).value)">
+              @for (h of hours.slice(0, 24); track h) {
+                <option [value]="h" [selected]="h === timezoneService.workHours().start">{{ formatHourOption(h) }}</option>
+              }
+            </select>
+            <span>to</span>
+            <select aria-label="End" (change)="setWork('end', $any($event.target).value)">
+              @for (h of hours.slice(1); track h) {
+                <option [value]="h" [selected]="h === timezoneService.workHours().end">{{ formatHourOption(h) }}</option>
+              }
+            </select>
+          </div>
+          <p class="popover__note">Weekends follow each country, e.g. Friday-Saturday in Riyadh or Cairo.</p>
+        </div>
+      }
+    </div>
+  </div>
+}
 
 <div class="timezone-grid glass">
   <div class="grid-scroll">
@@ -22,23 +106,42 @@
       (mouseleave)="onGridMouseLeave()"
       (click)="onGridClick($event)">
 
-      <div class="column-overlay"
-        [class.pinned]="timezoneService.pinnedColumn() !== null && timezoneService.hoveredColumn() === null"
-        [style.left]="'calc(' + activeColumn() + ' * 100% / 24)'"
-        [style.width]="'calc(100% / 24)'">
-      </div>
+      @if (activeColumn() !== null) {
+        <div class="column-overlay"
+          [class.pinned]="timezoneService.pinnedColumn() !== null && timezoneService.hoveredColumn() === null"
+          [style.left]="'calc(' + activeColumn() + ' * 100% / 24)'"
+          [style.width]="'calc(100% / 24)'">
+        </div>
+      }
 
-      @for (row of timezoneService.timezoneRows(); track row.entry.id; let first = $first) {
+      @if (timezoneService.timezoneRows().length > 1) {
+        <div class="availability">
+          <div class="availability__label">
+            <span>Who is working</span>
+            <span class="legend"><i class="lv-all"></i>everyone <i class="lv-most"></i>most <i class="lv-some"></i>some</span>
+          </div>
+          <div class="availability-strip">
+            @for (c of timezoneService.availability(); track $index) {
+              <div class="av-cell" [attr.data-level]="c.level" [attr.title]="c.workCount + ' of ' + c.total + ' in working hours'">
+                <span class="av-bar"></span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @for (row of timezoneService.timezoneRows(); track row.key; let first = $first) {
         <div cdkDrag class="drag-row" [cdkDragStartDelay]="{ touch: 250, mouse: 0 }">
           <app-timezone-row
             [row]="row"
             [isFirstRow]="first"
-            [inspectColumn]="inspectColumn()"
+            [inspectInstant]="inspectInstant()"
             [activeColumn]="activeColumn()"
-            [explanation]="timezoneService.explanations()[row.entry.id]"
+            [explanation]="timezoneService.explanations()[row.key]"
             [isLocal]="row.entry.id === timezoneService.localZone"
             (remove)="onRemove($event)"
             (makeReference)="onMakeReference($event)"
+            (rename)="onRename($event)"
           />
           <div class="drag-placeholder" *cdkDragPlaceholder></div>
         </div>

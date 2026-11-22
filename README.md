@@ -4,15 +4,16 @@ A timezone comparison tool inspired by WorldTimeBuddy. Compare times across mult
 
 ## Features
 
-- **Visual Time Grid**: 24-hour color-coded blocks per timezone (night, morning, business, evening)
-- **Real-time Updates**: All times update every second
-- **Time Slider**: Drag a vertical slider to explore different hours across all timezones
-- **Drag to Reorder**: Reorder timezone rows via drag-and-drop
-- **Shareable URLs**: URL state via hash routing (`#/?tz=America/New_York&tz=Europe/London`)
-- **Persistent Storage**: Selections saved to localStorage and restored on revisit
-- **Auto-detect**: Detects local timezone on first visit
-- **Smart Search**: Search 55 cities by name, country, or region
-- **Responsive**: Mobile layout with horizontal scroll for hour blocks
+- **Smart search**: cities, countries, IANA ids, zone names ("Pacific Time"), abbreviations (IST, CET, PST), offsets (UTC+5:30, +9) and abbreviation arithmetic (CET+1, EST-2)
+- **Natural-language times**: "3pm London", "tomorrow 9:30am in Tokyo", "noon IST", "next fri 4pm New York" pin that moment for everyone
+- **Meeting finder**: availability strip and a best-time suggestion based on working hours, local weekends (including Friday-Saturday countries) and sleep hours
+- **Pin a moment**: click an hour, nudge it with the arrow keys, copy everyone's time, or add it to a calendar (.ics, Google, Outlook)
+- **Any day**: step through days or pick a date; DST changes are handled per zone
+- **Labels and duplicates**: rename rows (e.g. a person or office) and add the same zone more than once; labels and the pinned time travel in shared links
+- **Explanations**: each zone is described relative to the visitor's own zone, including upcoming clock changes
+- **Status at a glance**: working hours, off hours, likely asleep, weekend, tomorrow/yesterday
+- **Offline and installable** (PWA), light and dark appearance, 12/24-hour clock
+- **Shareable URLs**: `#/?tz=Asia/Kolkata&tz=America/New_York~Alice&at=2026-11-23T09:30Z`
 
 ## Tech Stack
 
@@ -20,7 +21,7 @@ A timezone comparison tool inspired by WorldTimeBuddy. Compare times across mult
 - Angular CDK (drag-drop)
 - IBM Plex Sans / Mono fonts
 - SCSS with CSS custom properties
-- GitHub Pages deployment via Actions
+- GitHub Pages deployment via angular-cli-ghpages
 
 ## Local Development
 
@@ -37,6 +38,12 @@ Navigate to `http://localhost:4200`
 
 ```bash
 ng build --configuration production
+```
+
+## Deploy
+
+```bash
+npx ng deploy --base-href=/timezone/
 ```
 
 Output: `dist/timezones-angular/`
