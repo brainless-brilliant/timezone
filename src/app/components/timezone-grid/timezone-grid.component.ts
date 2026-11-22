@@ -5,12 +5,13 @@ import { TimezoneService } from '../../core/services/timezone.service';
 import { TimeCalculationService } from '../../core/services/time-calculation.service';
 import { CalendarService, CalendarEvent } from '../../core/services/calendar.service';
 import { TimezoneRowComponent } from '../timezone-row/timezone-row.component';
+import { TimezoneMobileComponent } from '../timezone-mobile/timezone-mobile.component';
 import { ClickOutsideDirective } from '../../shared/directives/click-outside.directive';
 
 @Component({
   selector: 'app-timezone-grid',
   standalone: true,
-  imports: [CommonModule, CdkDropList, CdkDrag, CdkDragPlaceholder, TimezoneRowComponent, ClickOutsideDirective],
+  imports: [CommonModule, CdkDropList, CdkDrag, CdkDragPlaceholder, TimezoneRowComponent, TimezoneMobileComponent, ClickOutsideDirective],
   templateUrl: './timezone-grid.component.html',
   styleUrls: ['./timezone-grid.component.scss']
 })
@@ -20,6 +21,15 @@ export class TimezoneGridComponent {
   private calendar = inject(CalendarService);
 
   @ViewChild('dateInput') private dateInput?: ElementRef<HTMLInputElement>;
+
+  /** Phones get a card layout with an hour scrubber instead of the 24-column grid. */
+  private phoneQuery = window.matchMedia('(max-width: 640px)');
+  protected isPhone = signal(this.phoneQuery.matches);
+  protected finderOpen = signal(false);
+
+  constructor() {
+    this.phoneQuery.addEventListener('change', e => this.isPhone.set(e.matches));
+  }
 
   protected copied = signal(false);
   protected calendarOpen = signal(false);

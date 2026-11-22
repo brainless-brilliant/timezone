@@ -41,13 +41,15 @@
       </div>
     </div>
   } @else {
-    <span class="hint">Click an hour to pin it. Arrow keys move it.</span>
+    @if (!isPhone()) {
+      <span class="hint">Click an hour to pin it. Arrow keys move it.</span>
+    }
   }
 </div>
 
 <!-- Meeting finder -->
 @if (suggestionText(); as s) {
-  <div class="finder glass">
+  <div class="finder glass" [class.finder--collapsed]="isPhone() && !finderOpen()">
     <span class="finder__icon" [class.ok]="s.everyoneWorking" aria-hidden="true">
       @if (s.everyoneWorking) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
@@ -55,13 +57,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
       }
     </span>
-    <div class="finder__text">
+    <div class="finder__text" (click)="finderOpen.set(!finderOpen())">
       @if (s.everyoneWorking) {
         <strong>Best time: {{ s.range }} {{ s.city }}</strong>
-        <span>Everyone is within working hours{{ timezoneService.isToday() ? '' : ' on this day' }}.</span>
+        <span class="finder__details">Everyone is within working hours{{ timezoneService.isToday() ? '' : ' on this day' }}.</span>
       } @else {
         <strong>No hour suits everyone. Least disruptive: {{ s.range }} {{ s.city }}</strong>
-        <span>
+        <span class="finder__details">
           {{ s.workingCount }} of {{ s.total }} in working hours.
           @for (o of s.outliers; track o.name; let last = $last) {
             {{ o.name }} at {{ o.time }} ({{ o.status }}){{ last ? '.' : ';' }}
@@ -69,7 +71,7 @@
         </span>
         @if (nextGood(); as n) {
           @if (n.never) {
-            <span class="finder__next">Working hours never overlap for everyone. Try widening them with the hours button.</span>
+            <span class="finder__next finder__details">Working hours never overlap for everyone. Try widening them with the hours button.</span>
           } @else {
             <button class="finder__next finder__link" (click)="timezoneService.pinInstant(n.instant)">
               Everyone is working {{ n.label }} &rarr;
@@ -106,6 +108,9 @@
   </div>
 }
 
+@if (isPhone()) {
+  <app-timezone-mobile />
+} @else {
 <div class="timezone-grid glass">
   <div class="grid-scroll">
     <div class="grid-inner"
@@ -158,3 +163,4 @@
     </div>
   </div>
 </div>
+}

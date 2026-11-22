@@ -418,9 +418,32 @@
     &__text { flex-basis: calc(100% - 3rem); }
   }
 
-  .finder .chip:first-of-type { margin-left: 2.75rem; }
+  .finder .chip:first-of-type { margin-left: 2.35rem; }
 
   .day-label__date { display: none; }
 
   .popover { right: auto; left: 0; transform-origin: top left; }
+}
+
+/* Phone: compact finder, details on tap */
+.finder--collapsed .finder__details {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .finder {
+    padding: 0.6rem 0.6rem 0.6rem 0.75rem;
+    gap: 0.6rem;
+
+    &__text strong { font-size: 0.8125rem; }
+    &__icon { width: 1.75rem; height: 1.75rem; }
+  }
+
+  .finder__text {
+    cursor: pointer;
+  }
+
+  .grid-toolbar {
+    margin-bottom: 0.6rem;
+  }
 }

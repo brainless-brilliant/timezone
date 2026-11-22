@@ -1,0 +1,111 @@
+<!-- Hour scrubber: the reference zone's day, one chip per hour, dots show who is working -->
+<div class="scrubber-wrap">
+  <div class="scrubber-head">
+    <span>{{ referenceName() }} time</span>
+    @if (pinnedLabel(); as p) {
+      <span class="scrubber-head__pin">Pinned {{ p }}</span>
+    } @else {
+      <span>Tap an hour to compare</span>
+    }
+  </div>
+  <div class="scrubber" #scrubber role="listbox" aria-label="Hour of the day">
+    @for (c of chips(); track c.index) {
+      <button
+        class="hour-chip"
+        role="option"
+        [attr.data-col]="c.index"
+        [attr.data-level]="c.level"
+        [class.active]="activeColumn() === c.index"
+        [class.pinned]="svc.pinnedColumn() === c.index"
+        [class.now]="c.now"
+        [attr.aria-selected]="activeColumn() === c.index"
+        [attr.title]="c.title"
+        (click)="pick(c.index)">
+        <span class="hour-chip__h">{{ c.hour }}</span>
+        <span class="hour-chip__p">{{ c.period }}</span>
+        @if (svc.timezoneRows().length > 1) {
+          <span class="hour-chip__dot" aria-hidden="true"></span>
+        }
+      </button>
+    }
+  </div>
+  @if (svc.timezoneRows().length > 1) {
+    <div class="scrubber-legend" aria-hidden="true">
+      <span><i class="lv-all"></i>everyone working</span>
+      <span><i class="lv-most"></i>most</span>
+      <span><i class="lv-some"></i>some</span>
+    </div>
+  }
+</div>
+
+<!-- One card per row -->
+<div class="cards" cdkDropList (cdkDropListDropped)="onDrop($event)">
+  @for (c of cards(); track c.row.key) {
+    <article class="card" cdkDrag [cdkDragStartDelay]="{ touch: 200, mouse: 0 }">
+      <div class="card__top">
+        <div class="card__id">
+          <div class="card__name-line">
+            @if (editingKey() === c.row.key) {
+              <input #nameInput class="m-name-input" [value]="c.row.entry.name" maxlength="40"
+                aria-label="Row label" placeholder="Label, e.g. a person"
+                (keydown.enter)="commitRename(c.row.key, c.row.entry.name, nameInput.value)"
+                (keydown.escape)="editingKey.set(null)"
+                (blur)="commitRename(c.row.key, c.row.entry.name, nameInput.value)" />
+            } @else {
+              <button class="card__name" (click)="startRename(c.row.key)" title="Rename">{{ c.row.entry.name }}</button>
+            }
+            @if (c.isLocal) { <span class="tag tag--solid">You</span> }
+          </div>
+          <div class="card__meta">
+            @if (c.row.zoneCity) { <span>{{ c.row.zoneCity }}</span><span class="sep">&middot;</span> }
+            <span class="abbr">{{ c.row.timezoneAbbr }}</span>
+            @if (c.isReference) {
+              <span class="sep">&middot;</span><span>Reference</span>
+            } @else if (c.row.relativeOffset) {
+              <span class="sep">&middot;</span><span class="mono">{{ c.row.relativeOffset }}h</span>
+            }
+          </div>
+        </div>
+        <div class="card__time">
+          <span class="time" [class.pinned]="svc.pinnedInstant() !== null">{{ c.time }}</span>
+          <span class="date">
+            @if (c.dayRelation) { <b>{{ c.dayRelation }}</b> }
+            {{ c.date }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Day at a glance: 24 segments aligned with the scrubber, marker on the active hour -->
+      <div class="mini" aria-hidden="true">
+        @for (b of c.row.hourBlocks; track $index) {
+          <span class="mini__seg" [attr.data-tod]="b.timeOfDay" [attr.data-av]="b.availability"
+            [class.new-day]="b.dayLabel" [class.active]="activeColumn() === $index"></span>
+        }
+      </div>
+
+      <div class="card__bottom">
+        <span class="status" [attr.data-av]="c.status.availability">{{ c.status.label }}</span>
+        <div class="card__actions">
+          @if (!c.isReference) {
+            <button class="icon-btn" (click)="makeReference(c.row.key)" aria-label="Use as reference" title="Use as reference">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>
+            </button>
+          }
+          <button class="icon-btn" (click)="remove(c.row.key)" [attr.aria-label]="'Remove ' + c.row.entry.name" title="Remove">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+          <span class="drag" cdkDragHandle aria-label="Drag to reorder" title="Hold and drag to reorder">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="17" r="1.4"/><circle cx="15" cy="17" r="1.4"/></svg>
+          </span>
+        </div>
+      </div>
+
+      @if (renameError()?.key === c.row.key) {
+        <p class="explain">{{ renameError()!.message }}</p>
+      } @else if (c.explanation.line1) {
+        <p class="explain">{{ c.explanation.line1 }} <span class="explain__2">{{ c.explanation.line2 }}</span></p>
+      }
+      <div class="card-placeholder" *cdkDragPlaceholder></div>
+    </article>
+  }
+</div>

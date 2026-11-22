@@ -203,6 +203,20 @@ a {
   }
 }
 
+// Phones: stronger, more opaque glass so text stays crisp over a busy background,
+// and a calmer ambient field.
+@media (max-width: 640px) {
+  .glass {
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  .ambient span {
+    opacity: 0.6;
+  }
+}
+
 @media (prefers-reduced-transparency: reduce) {
   .glass {
     background: var(--glass-bg-strong);
