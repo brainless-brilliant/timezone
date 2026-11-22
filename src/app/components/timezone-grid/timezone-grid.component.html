@@ -67,6 +67,15 @@
             {{ o.name }} at {{ o.time }} ({{ o.status }}){{ last ? '.' : ';' }}
           }
         </span>
+        @if (nextGood(); as n) {
+          @if (n.never) {
+            <span class="finder__next">Working hours never overlap for everyone. Try widening them with the hours button.</span>
+          } @else {
+            <button class="finder__next finder__link" (click)="timezoneService.pinInstant(n.instant)">
+              Everyone is working {{ n.label }} &rarr;
+            </button>
+          }
+        }
       }
     </div>
     <button class="chip" (click)="pinSuggestion()">Pin it</button>
@@ -138,7 +147,7 @@
             [inspectInstant]="inspectInstant()"
             [activeColumn]="activeColumn()"
             [explanation]="timezoneService.explanations()[row.key]"
-            [isLocal]="row.entry.id === timezoneService.localZone"
+            [isLocal]="row.key === timezoneService.localRowKey()"
             (remove)="onRemove($event)"
             (makeReference)="onMakeReference($event)"
             (rename)="onRename($event)"

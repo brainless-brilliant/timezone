@@ -200,6 +200,39 @@ export class TimezoneService {
     };
   });
 
+  /**
+   * When the viewed day has no hour that suits everyone, look ahead up to two weeks for the
+   * first hour when everyone is within working hours. `never` means working hours never
+   * overlap at all (for example 9-5 in zones 12 hours apart).
+   */
+  nextEveryoneWorking = computed<{ instant: number; dayOffset: number; never: boolean } | null>(() => {
+    this.currentHourKey();
+    const keys = this.selectedKeys();
+    const work = this.workHours();
+    const hour12 = this.hour12();
+    const from = this.dayOffset();
+    if (keys.length < 2) return null;
+    const now = new Date();
+    const ref = zoneOfKey(keys[0]);
+    const zones = [...new Set(keys.map(zoneOfKey))];
+    for (let d = from + 1; d <= from + 14; d++) {
+      const perZone = zones.map(z => this.timeCalc.generateHourBlocks(now, z, ref, hour12, d, work, weekendDays(z)));
+      for (let col = 0; col < 24; col++) {
+        if (perZone.every(blocks => blocks[col].availability === 'work')) {
+          const instant = perZone[0][col].instant;
+          if (instant > now.getTime()) return { instant, dayOffset: d, never: false };
+        }
+      }
+    }
+    return { instant: 0, dayOffset: 0, never: true };
+  });
+
+  /** Row index of the visitor's own zone (first match), for the "You" tag. */
+  localRowKey = computed(() => {
+    const keys = this.selectedKeys();
+    return keys.find(k => k === this.localZone) ?? keys.find(k => zoneOfKey(k) === this.localZone) ?? null;
+  });
+
   /** Plain-language explanation per row, relative to the visitor's local zone. Refreshed hourly. */
   private currentHourKey = computed(() => Math.floor(this.currentTime().getTime() / HOUR_MS));
   explanations = computed<Record<string, ZoneExplanation>>(() => {
@@ -253,7 +286,9 @@ export class TimezoneService {
   /** Key a (zone, name) pair would get as a row. */
   keyFor(zone: string, name?: string): string {
     zone = canonicalZoneId(zone);
-    const clean = (name ?? '').replace(/~/g, '-').trim();
+    // Labels can come from shared links: drop control characters and cap the length.
+    // eslint-disable-next-line no-control-regex
+    const clean = (name ?? '').replace(/[\x00-\x1f\x7f]/g, ' ').replace(/~/g, '-').replace(/\s+/g, ' ').trim().slice(0, 40);
     return !clean || clean === this.defaultName(zone) ? zone : `${zone}~${clean}`;
   }
 

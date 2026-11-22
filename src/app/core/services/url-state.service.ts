@@ -33,7 +33,10 @@ export class UrlStateService {
     const raw = this.hashQuery().get('at');
     if (!raw) return null;
     const ms = /^\d+$/.test(raw) ? Number(raw) : Date.parse(raw);
-    return Number.isFinite(ms) ? ms : null;
+    // Ignore anything outside +/- 10 years; extreme values would produce invalid Dates.
+    const TEN_YEARS = 10 * 366 * 86_400_000;
+    if (!Number.isFinite(ms) || Math.abs(ms - Date.now()) > TEN_YEARS) return null;
+    return ms;
   }
 
   private isoMinute(ms: number): string {

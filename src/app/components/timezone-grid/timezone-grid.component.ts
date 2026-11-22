@@ -71,6 +71,18 @@ export class TimezoneGridComponent {
     return { range, city: ref.entry.name, ...s };
   });
 
+  /** First upcoming hour when everyone is in working hours, phrased for the finder. */
+  protected nextGood = computed(() => {
+    const n = this.timezoneService.nextEveryoneWorking();
+    const ref = this.timezoneService.timezoneRows()[0];
+    if (!n || !ref) return null;
+    if (n.never) return { never: true, instant: 0, label: '' };
+    const at = new Date(n.instant);
+    const day = this.timeCalc.formatDate(at, ref.entry.id);
+    const time = this.timeCalc.formatTime(at, ref.entry.id, this.timezoneService.hour12());
+    return { never: false, instant: n.instant, label: `${day}, ${time} ${ref.entry.name}` };
+  });
+
   protected workLabel = computed(() => {
     const w = this.timezoneService.workHours();
     const f = (h: number) => this.timezoneService.hour12()
