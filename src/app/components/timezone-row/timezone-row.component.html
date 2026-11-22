@@ -1,17 +1,49 @@
-<div class="timezone-row">
+<div class="timezone-row" [class.is-reference]="isFirstRow">
   <div class="row-info">
-    <button class="remove-btn" (click)="onRemove()" aria-label="Remove timezone">x</button>
+    <span class="drag-handle" cdkDragHandle aria-hidden="true" title="Drag to reorder">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="17" r="1.4"/><circle cx="15" cy="17" r="1.4"/></svg>
+    </span>
+
     <div class="info-left">
-      @if (row.relativeOffset) {
-        <span class="relative-offset">{{ row.relativeOffset }}</span>
+      <div class="title-line">
+        <span class="city-name">{{ row.entry.name }}</span>
+        <span class="chip-abbr" [attr.title]="row.utcOffset + (row.isDst ? ', daylight saving time' : '')">{{ row.timezoneAbbr }}</span>
+        @if (row.timezoneAbbr !== row.utcOffset) {
+          <span class="utc">{{ row.utcOffset }}</span>
+        }
+        @if (isFirstRow) {
+          <span class="tag">Reference</span>
+        } @else if (row.relativeOffset) {
+          <span class="relative-offset" title="Hours relative to the reference row">{{ row.relativeOffset }}h</span>
+        }
+        @if (isLocal) {
+          <span class="tag tag--solid">You</span>
+        }
+      </div>
+      @if (explanation && (explanation.line1 || explanation.line2)) {
+        <p class="explain">
+          <span>{{ explanation.line1 }}</span>
+          <span class="explain__secondary">{{ explanation.line2 }}</span>
+        </p>
+      } @else if (row.entry.country) {
+        <p class="explain"><span>{{ row.entry.country }}</span></p>
       }
-      <span class="city-name">{{ row.entry.name }}</span>
-      <span class="tz-abbr">{{ row.timezoneAbbr }}</span>
-      <span class="country">{{ row.entry.country }}</span>
     </div>
+
     <div class="info-right">
-      <span class="current-time">{{ displayedTime }}</span>
-      <span class="current-date">{{ row.currentDate }}</span>
+      <span class="current-time" [class.inspecting]="inspectColumn !== null">{{ displayedTime }}</span>
+      <span class="current-date">{{ displayedDate }}</span>
+    </div>
+
+    <div class="row-actions">
+      @if (!isFirstRow) {
+        <button class="icon-btn" (click)="onMakeReference()" aria-label="Use as reference row" title="Use as reference">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg>
+        </button>
+      }
+      <button class="icon-btn icon-btn--danger" (click)="onRemove()" [attr.aria-label]="'Remove ' + row.entry.name" title="Remove">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
     </div>
   </div>
 
@@ -19,11 +51,17 @@
     @for (block of row.hourBlocks; track $index) {
       <div
         class="hour-block"
-        [class.magnified]="activeColumn === $index"
+        [class.active]="activeColumn === $index"
+        [class.now]="block.isCurrentHour"
+        [class.new-day]="block.dayLabel"
         [attr.data-tod]="block.timeOfDay"
       >
-        <span class="hour-num">{{ block.displayHour.split(' ')[0] }}</span>
-        <span class="hour-period">{{ block.displayHour.split(' ')[1] | lowercase }}</span>
+        <span class="hour-num">{{ block.hourLabel }}</span>
+        @if (block.dayLabel) {
+          <span class="hour-day">{{ block.dayLabel }}</span>
+        } @else if (block.periodLabel) {
+          <span class="hour-period">{{ block.periodLabel }}</span>
+        }
       </div>
     }
   </div>

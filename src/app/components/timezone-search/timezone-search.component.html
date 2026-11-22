@@ -1,59 +1,82 @@
 <div class="search-container" appClickOutside (appClickOutside)="closeDropdown()">
-  <div class="search-input-wrapper">
+  <div class="search-input-wrapper glass">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5"></circle>
+      <path d="m20 20-4.2-4.2"></path>
+    </svg>
     <input
+      #input
       type="text"
       class="search-input"
-      placeholder="Search any city worldwide..."
+      placeholder="City, zone, abbreviation or offset: Tokyo, IST, CET+1, UTC-5"
       [value]="searchQuery()"
       (input)="onSearchChange($any($event.target).value)"
       (keydown)="onKeydown($event)"
+      (focus)="onFocus()"
       role="combobox"
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="Search time zones"
       [attr.aria-expanded]="isDropdownOpen()"
       [attr.aria-controls]="getDropdownId()"
       [attr.aria-activedescendant]="activeIndex() >= 0 ? getOptionId(activeIndex()) : null"
       aria-autocomplete="list"
     />
     @if (isLoading()) {
-      <div class="search-loader">
-        <div class="spinner"></div>
-      </div>
+      <div class="search-loader" aria-hidden="true"><div class="spinner"></div></div>
+    } @else if (!searchQuery()) {
+      <kbd class="search-kbd" aria-hidden="true">/</kbd>
     }
   </div>
 
-  @if (isDropdownOpen() && (suggestions().length > 0 || isLoading())) {
-    <ul
-      class="suggestions-dropdown"
-      [id]="getDropdownId()"
-      role="listbox"
-    >
-      @if (suggestions().length === 0 && isLoading()) {
-        <li class="suggestion-item loading-item">Searching...</li>
+  @if (isDropdownOpen()) {
+    <div class="suggestions-panel glass">
+      @if (expression()) {
+        <div class="expression">{{ expression() }}</div>
       }
-      @for (suggestion of suggestions(); track suggestion.id + ':' + suggestion.name; let i = $index) {
-        <li
-          class="suggestion-item"
-          [class.active]="i === activeIndex()"
-          [class.already-selected]="isAlreadySelected(suggestion)"
-          [id]="getOptionId(i)"
-          role="option"
-          [attr.aria-selected]="i === activeIndex()"
-          (click)="selectTimezone(suggestion)"
-        >
-          <span class="suggestion-city">{{ suggestion.name }}</span>
-          <span class="suggestion-details">
-            {{ suggestion.country }}
-            @if (suggestion.region) {
-              , {{ suggestion.region }}
+      <ul class="suggestions-list" [id]="getDropdownId()" role="listbox">
+        @for (s of suggestions(); track s.source + s.entry.id + ':' + s.entry.name; let i = $index) {
+          @if (i === 0 && s.source === 'zone') {
+            <li class="group-label" role="presentation">Time zones</li>
+          }
+          @if (i === firstCityIndex()) {
+            <li class="group-label" role="presentation">Cities</li>
+          }
+          <li
+            class="suggestion-item"
+            [class.active]="i === activeIndex()"
+            [class.already-selected]="isAlreadySelected(s)"
+            [id]="getOptionId(i)"
+            role="option"
+            [attr.aria-selected]="i === activeIndex()"
+            [attr.aria-disabled]="isAlreadySelected(s)"
+            (click)="selectTimezone(s)"
+            (mouseenter)="activeIndex.set(i)"
+          >
+            <span class="suggestion-main">
+              <span class="suggestion-city">{{ s.entry.name }}</span>
+              <span class="suggestion-details">{{ s.detail }}</span>
+            </span>
+            @if (isAlreadySelected(s)) {
+              <span class="already-badge">Added</span>
+            } @else if (s.badge) {
+              <span class="suggestion-badge">{{ s.badge }}</span>
             }
-            @if (isAlreadySelected(suggestion)) {
-              <span class="already-badge">already added</span>
-            }
-          </span>
-        </li>
+          </li>
+        }
+        @if (isLoading() && suggestions().length === 0) {
+          <li class="suggestion-item muted" role="presentation">Searching...</li>
+        }
+        @if (!isLoading() && suggestions().length === 0 && searchQuery().trim().length >= 2) {
+          <li class="suggestion-item muted" role="presentation">No matching cities or time zones</li>
+        }
+      </ul>
+      @if (activeExplanation(); as ex) {
+        <div class="explain" aria-live="polite">
+          <strong>{{ ex.title }}</strong>
+          <span>{{ ex.line1 }} {{ ex.line2 }}</span>
+        </div>
       }
-      @if (suggestions().length === 0 && !isLoading() && searchQuery().length >= 2) {
-        <li class="suggestion-item no-results">No cities found</li>
-      }
-    </ul>
+    </div>
   }
 </div>

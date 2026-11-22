@@ -18,7 +18,7 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": "dist/timezones-angular",
-            "baseHref": "/timezones/",
+            "baseHref": "/timezone/",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -31,8 +31,7 @@
                 "glob": "**/*",
                 "input": "public"
               },
-              "src/clock-icon.svg",
-              "src/time.svg"
+              "src/clock-icon.svg"
             ],
             "styles": [
               "src/styles.scss"
@@ -54,8 +53,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
@@ -103,8 +102,14 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "angular-cli-ghpages:deploy"
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

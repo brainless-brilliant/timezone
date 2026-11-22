@@ -17,10 +17,14 @@ export enum TimeOfDay {
 export interface HourBlock {
   hour: number;          // 0-23 whole hour in that timezone
   minutes: number;       // 0 or 30 (for half-hour offset timezones)
-  displayHour: string;   // formatted e.g. '9 AM', '1:30 PM'
+  displayHour: string;   // formatted e.g. '9 AM', '1:30 PM', '13:30'
+  hourLabel: string;     // e.g. '9', '1:30', '13'
+  periodLabel: string;   // 'am' | 'pm' | '' in 24-hour mode
+  dayLabel: string;      // weekday shown at local midnight, e.g. 'Tue'
   timeOfDay: TimeOfDay;
   isCurrentHour: boolean;
   crossesMidnight: boolean; // true if this column crosses midnight boundary
+  instant: number;       // epoch ms of this column (reference zone hh:00)
 }
 
 export interface TimezoneRow {
@@ -28,7 +32,8 @@ export interface TimezoneRow {
   currentTime: string;    // e.g. '2:45 PM'
   currentDate: string;    // e.g. 'Mon, Feb 10'
   utcOffset: string;      // e.g. 'UTC-5'
-  relativeOffset: string; // e.g. '+2', '-10.5', '' for first row
+  relativeOffset: string; // e.g. '+2', '-9:30', '' for the reference row
+  isDst: boolean;
   timezoneAbbr: string;   // e.g. 'GMT', 'EST', 'IST'
   hourBlocks: HourBlock[];
 }

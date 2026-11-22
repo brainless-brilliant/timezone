@@ -1,12 +1,13 @@
+<div class="ambient" aria-hidden="true"><span class="a"></span><span class="b"></span><span class="c"></span></div>
 <div class="app-container">
   <app-header />
-  <div class="app-content">
+  <main class="app-content">
     <app-timezone-search />
     @if (timezoneService.timezoneRows().length > 0) {
       <app-timezone-grid />
     } @else {
       <app-empty-state />
     }
-  </div>
+  </main>
   <app-footer />
 </div>

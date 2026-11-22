@@ -5,6 +5,7 @@ import { TimezoneEntry } from '../models/timezone.model';
 export class StorageService {
   private readonly STORAGE_KEY = 'tz_selected_ids';
   private readonly ENTRIES_KEY = 'tz_custom_entries';
+  private readonly HOUR12_KEY = 'tz_hour12';
 
   load(): string[] {
     try {
@@ -39,6 +40,23 @@ export class StorageService {
   saveEntries(entries: TimezoneEntry[]): void {
     try {
       localStorage.setItem(this.ENTRIES_KEY, JSON.stringify(entries));
+    } catch {
+      // Silently fail if localStorage is unavailable
+    }
+  }
+
+  loadHour12(): boolean | null {
+    try {
+      const v = localStorage.getItem(this.HOUR12_KEY);
+      return v === null ? null : v === '1';
+    } catch {
+      return null;
+    }
+  }
+
+  saveHour12(value: boolean): void {
+    try {
+      localStorage.setItem(this.HOUR12_KEY, value ? '1' : '0');
     } catch {
       // Silently fail if localStorage is unavailable
     }

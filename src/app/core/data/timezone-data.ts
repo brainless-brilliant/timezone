@@ -35,7 +35,7 @@ export const TIMEZONE_DATABASE: TimezoneEntry[] = [
   { id: 'Asia/Jakarta', name: 'Jakarta', country: 'Indonesia', region: 'Western Indonesia Time' },
   { id: 'Asia/Manila', name: 'Manila', country: 'Philippines', region: 'Philippine Time' },
   { id: 'Asia/Kuala_Lumpur', name: 'Kuala Lumpur', country: 'Malaysia', region: 'Malaysia Time' },
-  { id: 'Asia/Kolkata', name: 'Mumbai', country: 'India', region: 'India Standard Time' },
+  { id: 'Asia/Kolkata', name: 'Kolkata', country: 'India', region: 'India Standard Time (Mumbai, New Delhi, Bengaluru)' },
   { id: 'Asia/Dubai', name: 'Dubai', country: 'UAE', region: 'Gulf Standard Time' },
   { id: 'Asia/Tehran', name: 'Tehran', country: 'Iran', region: 'Iran Standard Time' },
 
@@ -48,11 +48,11 @@ export const TIMEZONE_DATABASE: TimezoneEntry[] = [
   { id: 'Pacific/Auckland', name: 'Auckland', country: 'New Zealand', region: 'New Zealand Time' },
 
   // South America
-  { id: 'America/Sao_Paulo', name: 'Sao Paulo', country: 'Brazil', region: 'Brasilia Time' },
-  { id: 'America/Buenos_Aires', name: 'Buenos Aires', country: 'Argentina', region: 'Argentina Time' },
+  { id: 'America/Sao_Paulo', name: 'São Paulo', country: 'Brazil', region: 'Brasilia Time' },
+  { id: 'America/Argentina/Buenos_Aires', name: 'Buenos Aires', country: 'Argentina', region: 'Argentina Time' },
   { id: 'America/Santiago', name: 'Santiago', country: 'Chile', region: 'Chile Time' },
   { id: 'America/Lima', name: 'Lima', country: 'Peru', region: 'Peru Time' },
-  { id: 'America/Bogota', name: 'Bogota', country: 'Colombia', region: 'Colombia Time' },
+  { id: 'America/Bogota', name: 'Bogotá', country: 'Colombia', region: 'Colombia Time' },
 
   // Africa
   { id: 'Africa/Cairo', name: 'Cairo', country: 'Egypt', region: 'Eastern European Time' },
@@ -65,5 +65,19 @@ export const TIMEZONE_DATABASE: TimezoneEntry[] = [
   { id: 'Europe/Istanbul', name: 'Istanbul', country: 'Turkey', region: 'Turkey Time' },
   { id: 'Europe/Athens', name: 'Athens', country: 'Greece', region: 'Eastern European Time' },
   { id: 'Asia/Jerusalem', name: 'Jerusalem', country: 'Israel', region: 'Israel Standard Time' },
+  { id: 'UTC', name: 'UTC', country: 'Coordinated Universal Time', region: 'Universal' },
+  { id: 'America/Phoenix', name: 'Phoenix', country: 'United States', region: 'Mountain Time (no DST)' },
+  { id: 'America/Halifax', name: 'Halifax', country: 'Canada', region: 'Atlantic Time' },
+  { id: 'America/St_Johns', name: "St. John's", country: 'Canada', region: 'Newfoundland Time' },
+  { id: 'Europe/Dublin', name: 'Dublin', country: 'Ireland', region: 'GMT/IST' },
+  { id: 'Europe/Lisbon', name: 'Lisbon', country: 'Portugal', region: 'Western European Time' },
+  { id: 'Europe/Warsaw', name: 'Warsaw', country: 'Poland', region: 'Central European Time' },
+  { id: 'Europe/Kyiv', name: 'Kyiv', country: 'Ukraine', region: 'Eastern European Time' },
+  { id: 'Asia/Karachi', name: 'Karachi', country: 'Pakistan', region: 'Pakistan Standard Time' },
+  { id: 'Asia/Dhaka', name: 'Dhaka', country: 'Bangladesh', region: 'Bangladesh Standard Time' },
+  { id: 'Asia/Kathmandu', name: 'Kathmandu', country: 'Nepal', region: 'Nepal Time' },
+  { id: 'Asia/Ho_Chi_Minh', name: 'Ho Chi Minh City', country: 'Vietnam', region: 'Indochina Time' },
+  { id: 'Asia/Taipei', name: 'Taipei', country: 'Taiwan', region: 'Taipei Standard Time' },
+  { id: 'Asia/Riyadh', name: 'Riyadh', country: 'Saudi Arabia', region: 'Arabia Standard Time' },
   { id: 'Atlantic/Reykjavik', name: 'Reykjavik', country: 'Iceland', region: 'Greenwich Mean Time' },
 ];

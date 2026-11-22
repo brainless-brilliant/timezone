@@ -1,25 +1,48 @@
-<div class="timezone-grid"
-  cdkDropList
-  (cdkDropListDropped)="onDrop($event)"
-  (mousemove)="onGridMouseMove($event)"
-  (mouseleave)="onGridMouseLeave()">
-
-  <div class="column-overlay"
-    [style.left]="'calc((' + activeColumn() + ' * 100% / 24) - (100% / 24 * 0.25))'"
-    [style.width]="'calc(100% / 24 * 1.5)'">
-  </div>
-
-  @for (row of timezoneService.timezoneRows(); track row.entry.id; let first = $first; let last = $last) {
-    <div cdkDrag>
-      <app-timezone-row
-        [row]="row"
-        [isFirstRow]="first"
-        [isLastRow]="last"
-        [hoveredColumn]="timezoneService.hoveredColumn()"
-        [activeColumn]="activeColumn()"
-        (remove)="onRemove($event)"
-      />
-      <div class="drag-placeholder" *cdkDragPlaceholder></div>
-    </div>
+<div class="grid-toolbar">
+  @if (pinnedSummary(); as pin) {
+    <span class="grid-toolbar__status">
+      <span class="dot" aria-hidden="true"></span>
+      Pinned: <strong>{{ pin.time }}</strong> in {{ pin.city }}
+    </span>
+    <span class="grid-toolbar__actions">
+      <button class="chip" (click)="copyPinned()">{{ copied() ? 'Copied' : 'Copy times' }}</button>
+      <button class="chip chip--ghost" (click)="clearPin()">Back to now</button>
+    </span>
+  } @else {
+    <span class="grid-toolbar__hint">Hover to compare hours. Click an hour to pin it and copy the times. Drag rows to reorder.</span>
   }
+</div>
+
+<div class="timezone-grid glass">
+  <div class="grid-scroll">
+    <div class="grid-inner"
+      cdkDropList
+      (cdkDropListDropped)="onDrop($event)"
+      (mousemove)="onGridMouseMove($event)"
+      (mouseleave)="onGridMouseLeave()"
+      (click)="onGridClick($event)">
+
+      <div class="column-overlay"
+        [class.pinned]="timezoneService.pinnedColumn() !== null && timezoneService.hoveredColumn() === null"
+        [style.left]="'calc(' + activeColumn() + ' * 100% / 24)'"
+        [style.width]="'calc(100% / 24)'">
+      </div>
+
+      @for (row of timezoneService.timezoneRows(); track row.entry.id; let first = $first) {
+        <div cdkDrag class="drag-row" [cdkDragStartDelay]="{ touch: 250, mouse: 0 }">
+          <app-timezone-row
+            [row]="row"
+            [isFirstRow]="first"
+            [inspectColumn]="inspectColumn()"
+            [activeColumn]="activeColumn()"
+            [explanation]="timezoneService.explanations()[row.entry.id]"
+            [isLocal]="row.entry.id === timezoneService.localZone"
+            (remove)="onRemove($event)"
+            (makeReference)="onMakeReference($event)"
+          />
+          <div class="drag-placeholder" *cdkDragPlaceholder></div>
+        </div>
+      }
+    </div>
+  </div>
 </div>

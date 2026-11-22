@@ -1,25 +1,32 @@
 <header class="header">
-  <div class="header__content">
+  <div class="header__bar glass">
     <div class="header__left">
-      <svg class="header__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <svg class="header__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
         <path fill="currentColor" d="M16,30A14,14,0,1,1,30,16,14,14,0,0,1,16,30ZM16,4A12,12,0,1,0,28,16,12,12,0,0,0,16,4Z"/>
         <polygon fill="currentColor" points="20.59 22 15 16.41 15 7 17 7 17 15.58 22 20.59 20.59 22"/>
       </svg>
       <div class="header__text">
         <h1 class="header__title">World Time Zones</h1>
-        <p class="header__subtitle">Compare times across the globe</p>
+        <p class="header__subtitle" [attr.title]="'Your time zone: ' + localZone">
+          You: {{ localLabel }} &middot; {{ localTime() }}
+        </p>
       </div>
     </div>
 
     <div class="header__actions">
-      <button class="header__btn" (click)="copyLink()" [attr.aria-label]="showCopiedFeedback() ? 'Link copied!' : 'Copy shareable link'">
+      <div class="seg" role="radiogroup" aria-label="Clock format">
+        <button role="radio" [attr.aria-checked]="hour12()" (click)="setHour12(true)">12h</button>
+        <button role="radio" [attr.aria-checked]="!hour12()" (click)="setHour12(false)">24h</button>
+      </div>
+
+      <button class="header__btn" (click)="copyLink()" [attr.aria-label]="showCopiedFeedback() ? 'Link copied' : 'Copy shareable link'">
         @if (showCopiedFeedback()) {
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span>Copied!</span>
+          <span>Copied</span>
         } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
           </svg>
@@ -27,24 +34,11 @@
         }
       </button>
 
-      <button class="header__btn header__theme-toggle" (click)="toggleTheme()" [attr.aria-label]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
-        @if (isDarkMode()) {
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-        } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-        }
+      <button class="header__btn header__icon-btn" (click)="toggleTheme()" [attr.aria-label]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.5"></circle>
+          <path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor" stroke="none"></path>
+        </svg>
       </button>
     </div>
   </div>

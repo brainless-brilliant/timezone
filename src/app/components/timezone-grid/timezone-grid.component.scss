@@ -1,167 +1,133 @@
-.timezone-grid {
-  position: relative;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: var(--glass-border);
-  border-radius: var(--glass-radius);
-  overflow: hidden;
-  box-shadow: var(--glass-shadow), var(--glass-shadow-inset);
-  cursor: crosshair;
+.grid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.25rem;
+  margin: 0 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  flex-wrap: wrap;
+
+  &__hint {
+    color: var(--color-text-tertiary);
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    strong {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+  }
+
+  &__actions {
+    display: inline-flex;
+    gap: 0.375rem;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
 }
 
-/* === LIQUID GLASS COLUMN HIGHLIGHTER === */
-/* Magnifying glass lens - 1.5x column width, shows content zoomed with glass effect */
+.chip {
+  height: 2rem;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &:hover { opacity: 0.88; }
+  &:active { transform: scale(0.96); }
+
+  &--ghost {
+    background: var(--color-fill);
+    color: var(--color-text-primary);
+  }
+}
+
+.timezone-grid {
+  border-radius: var(--glass-radius);
+  overflow: hidden;
+}
+
+.grid-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.grid-inner {
+  position: relative;
+  cursor: crosshair;
+  min-width: 720px;
+}
+
+/* Lens over the inspected column: a clear glass pane with bright rims. */
 .column-overlay {
   position: absolute;
   top: 0;
   bottom: 0;
   pointer-events: none;
   z-index: 10;
-  will-change: left, backdrop-filter; /* GPU acceleration hint */
-
-  // Smooth transition for position (like a lens gliding)
-  transition: left 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-
-  // Simple glass lens background with subtle edge fade
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.10) 30%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.10) 70%,
-    rgba(255, 255, 255, 0.12) 100%
-  );
-
-  // Glass magnification effect (brightens and saturates content underneath)
-  // backdrop-filter: brightness(1.4) saturate(170%) contrast(1.12);
-  // -webkit-backdrop-filter: brightness(1.4) saturate(170%) contrast(1.12);
-
-  // Glass rim borders
-  border-left: 2px solid rgba(255, 255, 255, 0.5);
-  border-right: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 6px;
-
-  // Subtle shadows for depth (not too heavy)
+  border-radius: 10px;
+  transition: left 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 40%, rgba(255, 255, 255, 0.1));
   box-shadow:
-    inset 0 0 25px rgba(255, 255, 255, 0.10),
-    inset 0 0 50px rgba(255, 255, 255, 0.05),
-    -3px 0 12px rgba(0, 0, 0, 0.12),
-    3px 0 12px rgba(0, 0, 0, 0.12),
-    0 0 30px rgba(255, 255, 255, 0.08);
+    inset 0 0 0 1.5px var(--color-column-border),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 24px rgba(0, 0, 0, 0.25);
 
-  // Subtle glass reflection at top edge
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.15) 0%,
-      rgba(255, 255, 255, 0.4) 30%,
-      rgba(255, 255, 255, 0.6) 50%,
-      rgba(255, 255, 255, 0.4) 70%,
-      rgba(255, 255, 255, 0.15) 100%);
-    border-radius: 6px 6px 0 0;
-    animation: shimmer 4s ease-in-out infinite;
-  }
-
-  // Subtle glass reflection at bottom edge
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.25) 30%,
-      rgba(255, 255, 255, 0.35) 50%,
-      rgba(255, 255, 255, 0.25) 70%,
-      rgba(255, 255, 255, 0.08) 100%);
-    border-radius: 0 0 6px 6px;
-    animation: shimmer-reverse 4s ease-in-out infinite;
+  &.pinned {
+    box-shadow:
+      inset 0 0 0 2.5px var(--color-accent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 0 24px rgba(0, 0, 0, 0.3);
   }
 }
 
-// Subtle shimmer - like light moving across curved glass
-@keyframes shimmer {
-  0%, 100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes shimmer-reverse {
-  0%, 100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-// Light theme adjustments for glass overlay
-[data-theme="light"] .column-overlay {
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.09) 0%,
-    rgba(0, 0, 0, 0.06) 30%,
-    rgba(0, 0, 0, 0.04) 50%,
-    rgba(0, 0, 0, 0.06) 70%,
-    rgba(0, 0, 0, 0.08) 100%
-  );
-
-  // backdrop-filter: brightness(0.88) saturate(150%) contrast(1.10);
-  // -webkit-backdrop-filter: brightness(0.88) saturate(150%) contrast(1.10);
-  border-left-color: rgba(0, 0, 0, 0.3);
-  border-right-color: rgba(0, 0, 0, 0.3);
-
+:host-context([data-theme='light']) .column-overlay {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.08) 40%, rgba(255, 255, 255, 0.25));
   box-shadow:
-    inset 0 0 25px rgba(0, 0, 0, 0.06),
-    inset 0 0 50px rgba(0, 0, 0, 0.03),
-    -3px 0 12px rgba(0, 0, 0, 0.10),
-    3px 0 12px rgba(0, 0, 0, 0.10),
-    0 0 30px rgba(0, 0, 0, 0.06);
+    inset 0 0 0 1.5px var(--color-column-border),
+    0 0 18px rgba(0, 0, 0, 0.12);
 
-  &::before {
-    background: linear-gradient(90deg,
-      rgba(0, 0, 0, 0.08) 0%,
-      rgba(0, 0, 0, 0.2) 30%,
-      rgba(0, 0, 0, 0.3) 50%,
-      rgba(0, 0, 0, 0.2) 70%,
-      rgba(0, 0, 0, 0.08) 100%);
-  }
-
-  &::after {
-    background: linear-gradient(90deg,
-      rgba(0, 0, 0, 0.04) 0%,
-      rgba(0, 0, 0, 0.15) 30%,
-      rgba(0, 0, 0, 0.22) 50%,
-      rgba(0, 0, 0, 0.15) 70%,
-      rgba(0, 0, 0, 0.04) 100%);
+  &.pinned {
+    box-shadow: inset 0 0 0 2.5px var(--color-accent), 0 0 18px rgba(0, 0, 0, 0.15);
   }
 }
-/* === END LIQUID GLASS COLUMN HIGHLIGHTER === */
+
+.drag-row:last-child ::ng-deep .timezone-row {
+  border-bottom: 0;
+}
 
 .drag-placeholder {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  height: 60px;
+  background: var(--color-fill);
+  border: 1px dashed var(--color-border);
+  height: 96px;
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 .cdk-drag-preview {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  opacity: 0.9;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   border-radius: var(--glass-radius-sm);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  overflow: hidden;
 }
 
-.cdk-drag-animating {
+.cdk-drag-animating,
+.cdk-drop-list-dragging .drag-row:not(.cdk-drag-placeholder) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
